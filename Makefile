@@ -25,9 +25,9 @@ $(BUILD_DIR)/utils.o: src/utils_shim.cpp
 
 test: $(BUILD_DIR)/test_writer
 
-$(BUILD_DIR)/test_writer: tests/test_writer.cpp src/lzend_writer.cpp src/utils_shim.cpp
+$(BUILD_DIR)/test_writer: tests/test_writer.cpp src/lzend_writer.cpp src/lzend_reader.cpp src/utils_shim.cpp
 	@if not exist $(BUILD_DIR) mkdir $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) -static -L"$(GTEST_DIR)\lib" -o $@ tests/test_writer.cpp src/lzend_writer.cpp src/utils_shim.cpp -lgtest -lgtest_main -lpthread
+	$(CXX) $(CXXFLAGS) -static -L"$(GTEST_DIR)\lib" -o $@ tests/test_writer.cpp src/lzend_writer.cpp src/lzend_reader.cpp src/utils_shim.cpp -lgtest -lgtest_main -lpthread
 
 clean:
 	if exist $(BUILD_DIR) rmdir /s /q $(BUILD_DIR)

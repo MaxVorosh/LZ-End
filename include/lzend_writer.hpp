@@ -1,15 +1,12 @@
 #pragma once
 
-#include "compute_lzend.hpp"
+#include "phrase_types.hpp"
 
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <vector>
 #include <fstream>
-
-typedef lzend_phrase<char, std::uint64_t, std::uint64_t> Phrase;
-typedef space_efficient_vector<Phrase> PhraseVector;
 
 int write_lzend_phrases(const char* filename, const PhraseVector& phrases);
 

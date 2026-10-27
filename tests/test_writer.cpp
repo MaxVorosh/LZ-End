@@ -1,12 +1,13 @@
 #include <gtest/gtest.h>
 
+#include "lzend_reader.hpp"
 #include "lzend_writer.hpp"
 
 #include <cstdio>
 #include <fstream>
 #include <vector>
 
-TEST(WriterTest, WritesSinglePhrase) {
+TEST(WriterReaderTest, RoundTripSingle) {
   PhraseVector v;
   Phrase p{};
   p.m_char = 'a';
@@ -17,24 +18,17 @@ TEST(WriterTest, WritesSinglePhrase) {
   const char* filename = "test_out.bin";
   ASSERT_EQ(write_lzend_phrases(filename, v), 0);
 
-  std::ifstream in(filename, std::ios::binary);
-  ASSERT_TRUE(in.is_open());
+  PhraseVector read;
+  ASSERT_EQ(read_lzend_phrases(filename, read), 0);
+  ASSERT_EQ(read.size(), v.size());
+  EXPECT_EQ(read[0].m_char, v[0].m_char);
+  EXPECT_EQ(read[0].m_link, v[0].m_link);
+  EXPECT_EQ(read[0].m_len, v[0].m_len);
 
-  std::uint64_t link, len;
-  char symb;
-  in.read(reinterpret_cast<char*>(&link), sizeof(link));
-  in.read(reinterpret_cast<char*>(&len), sizeof(len));
-  in.read(&symb, sizeof(symb));
-
-  EXPECT_EQ(link, 1u);
-  EXPECT_EQ(len, 2u);
-  EXPECT_EQ(symb, 'a');
-
-  in.close();
   std::remove(filename);
 }
 
-TEST(WriterTest, WritesMultiplePhrases) {
+TEST(WriterReaderTest, RoundTripMultiple) {
   PhraseVector v;
   for (char c = 'a'; c <= 'c'; ++c) {
     Phrase p{};
@@ -47,39 +41,31 @@ TEST(WriterTest, WritesMultiplePhrases) {
   const char* filename = "test_out2.bin";
   ASSERT_EQ(write_lzend_phrases(filename, v), 0);
 
-  std::ifstream in(filename, std::ios::binary);
-  ASSERT_TRUE(in.is_open());
-
-  for (char c = 'a'; c <= 'c'; ++c) {
-    std::uint64_t link, len;
-    char symb;
-    in.read(reinterpret_cast<char*>(&link), sizeof(link));
-    in.read(reinterpret_cast<char*>(&len), sizeof(len));
-    in.read(&symb, sizeof(symb));
-    EXPECT_EQ(link, static_cast<std::uint64_t>(c - 'a'));
-    EXPECT_EQ(len, static_cast<std::uint64_t>(c - 'a' + 1));
-    EXPECT_EQ(symb, c);
+  PhraseVector read;
+  ASSERT_EQ(read_lzend_phrases(filename, read), 0);
+  ASSERT_EQ(read.size(), v.size());
+  for (size_t i = 0; i < v.size(); ++i) {
+    EXPECT_EQ(read[i].m_char, v[i].m_char);
+    EXPECT_EQ(read[i].m_link, v[i].m_link);
+    EXPECT_EQ(read[i].m_len, v[i].m_len);
   }
 
-  EXPECT_TRUE(in.eof() || in.good());
-  in.close();
   std::remove(filename);
 }
 
-TEST(WriterTest, EmptyVector) {
+TEST(WriterReaderTest, EmptyVector) {
   PhraseVector v;
   const char* filename = "test_empty.bin";
   ASSERT_EQ(write_lzend_phrases(filename, v), 0);
 
-  std::ifstream in(filename, std::ios::binary);
-  ASSERT_TRUE(in.is_open());
-  in.seekg(0, std::ios::end);
-  EXPECT_EQ(in.tellg(), 0);
-  in.close();
+  PhraseVector read;
+  ASSERT_EQ(read_lzend_phrases(filename, read), 0);
+  EXPECT_EQ(read.size(), 0u);
+
   std::remove(filename);
 }
 
-TEST(WriterTest, InvalidFilenameReturnsError) {
+TEST(WriterReaderTest, InvalidFilenameReturnsError) {
   PhraseVector v;
   Phrase p{};
   p.m_char = 'x';
@@ -87,4 +73,7 @@ TEST(WriterTest, InvalidFilenameReturnsError) {
   p.m_len = 1;
   v.push_back(p);
   EXPECT_EQ(write_lzend_phrases("/nonexistent_dir/out.bin", v), -1);
+
+  PhraseVector read;
+  EXPECT_EQ(read_lzend_phrases("/nonexistent_dir/out.bin", read), -1);
 }

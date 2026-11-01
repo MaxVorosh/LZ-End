@@ -1,8 +1,8 @@
-#include "lzend_reader.hpp"
+#include "simple_coder/simple_reader.hpp"
 
 #include <fstream>
 
-int read_lzend_phrases(const char* filename, PhraseVector& phrases) {
+int SimpleReader::read_lzend_phrases(const char* filename, PhraseVector& phrases) {
   std::ifstream in(filename, std::ios::binary);
   if (!in) {
     return -1;

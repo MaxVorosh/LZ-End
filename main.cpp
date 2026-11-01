@@ -1,22 +1,26 @@
-#include "initial_parser.hpp"
-#include "lzend_writer.hpp"
+#include "base_coder/base_writer.hpp"
+#include "base_coder/initial_parser.hpp"
+#include "simple_coder/simple_writer.hpp"
+#include "huffman_coder/huffman_writer.hpp"
+
+#include <cstdio>
+#include <cstring>
 
 int main(int argc, char** argv) {
-  if (argc < 2) {
-    std::fprintf(stderr, "Usage: %s <compute> <input>\n", argv[0]);
+  if (argc < 4) {
+    std::fprintf(stderr, "Usage: %s write <input> <output> [huffman]\n", argv[0]);
     return 1;
   }
-  const char* mode = argv[1];
-  if (std::strcmp(mode, "write") != 0) {
-    std::fprintf(stderr, "Only compute mode supported\n");
-    return 1;
-  }
-  if (argc != 4) {
-    std::fprintf(stderr, "Usage: %s compute <input>\n", argv[0]);
-    return 1;
-  }
+  bool huffman = (argc >= 5 && std::strcmp(argv[4], "huffman") == 0);
   PhraseVector parsing;
-  parse_to_lzend_phrases(argv[2], &parsing);
-  write_lzend_phrases(argv[3], parsing);
+  parse_to_lzend_phrases(const_cast<char*>(argv[2]), &parsing);
+  BaseWriter* writer = huffman ? static_cast<BaseWriter*>(new HuffmanWriter())
+                               : static_cast<BaseWriter*>(new SimpleWriter());
+  int rc = writer->write_lzend_phrases(argv[3], parsing);
+  delete writer;
+  if (rc != 0) {
+    std::fprintf(stderr, "write failed\n");
+    return 1;
+  }
   return 0;
 }

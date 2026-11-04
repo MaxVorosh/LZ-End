@@ -4,13 +4,48 @@
 
 #include <cstdint>
 #include <cstring>
+#include <utility>
 #include <vector>
 
 class SimpleBitVector {
 public:
     SimpleBitVector(uint32_t n) : size_(0), capacity_(n), bytes_((n + 7) / 8) {
+        if (n == 0) {
+            capacity_ = 1;
+            bytes_ = 1;
+        }
         data_ = new uint8_t[bytes_];
         bw = BitWriter(data_);
+    }
+
+    SimpleBitVector(const SimpleBitVector&) = delete;
+    SimpleBitVector& operator=(const SimpleBitVector&) = delete;
+
+    SimpleBitVector(SimpleBitVector&& other) noexcept
+        : size_(other.size_), capacity_(other.capacity_), bytes_(other.bytes_),
+          data_(other.data_), bw(other.bw) {
+        other.data_ = nullptr;
+        other.size_ = 0;
+        other.capacity_ = 0;
+        other.bytes_ = 0;
+        bw.update_ptr(data_);
+    }
+
+    SimpleBitVector& operator=(SimpleBitVector&& other) noexcept {
+        if (this != &other) {
+            delete[] data_;
+            size_ = other.size_;
+            capacity_ = other.capacity_;
+            bytes_ = other.bytes_;
+            data_ = other.data_;
+            bw = other.bw;
+            other.data_ = nullptr;
+            other.size_ = 0;
+            other.capacity_ = 0;
+            other.bytes_ = 0;
+            bw.update_ptr(data_);
+        }
+        return *this;
     }
 
     ~SimpleBitVector() {
@@ -19,7 +54,7 @@ public:
 
     void write(int k, int bits) {
         if (size_ + bits >= capacity_) {
-            capacity_ *= 2;
+            capacity_ = capacity_ * 2;
             int old_bytes = bytes_;
             bytes_ = (capacity_ + 7) / 8;
             uint8_t* old_data = data_;
@@ -56,8 +91,29 @@ private:
 
 class BitVector {
 public:
-    BitVector() : bv(1) {}
-    BitVector(const SimpleBitVector& bv);
+    BitVector() : bv(1), data_(1) {}
+    BitVector(SimpleBitVector&& bv);
+    BitVector(const BitVector& other) = delete;
+    BitVector(BitVector&& other) noexcept
+        : bv(std::move(other.bv)), data_(std::move(other.data_)),
+          superblocks(std::move(other.superblocks)),
+          blocks(std::move(other.blocks)),
+          table(std::move(other.table)),
+          block_size_(other.block_size_),
+          superblock_size_(other.superblock_size_) {}
+
+    BitVector& operator=(BitVector&& other) noexcept {
+        if (this != &other) {
+            bv = std::move(other.bv);
+            data_ = std::move(other.data_);
+            superblocks = std::move(other.superblocks);
+            blocks = std::move(other.blocks);
+            table = std::move(other.table);
+            block_size_ = other.block_size_;
+            superblock_size_ = other.superblock_size_;
+        }
+        return *this;
+    }
 
     // Returns number of bits, equals to 'bit' on prefix i
     int rank(int i, int bit);
@@ -66,7 +122,7 @@ public:
 
 private:
     SimpleBitVector bv;
-    const SimpleBitVector* data_;
+    SimpleBitVector data_;
     std::vector<uint8_t> superblocks;
     std::vector<uint8_t> blocks;
     std::vector<uint8_t> table;

@@ -73,3 +73,9 @@ test_bit: $(BUILD_DIR)/test_bit_vector
 $(BUILD_DIR)/test_bit_vector: tests/test_bit_vector.cpp src/utils/bit_vector.cpp src/utils/bit_writer.cpp
 	@if not exist $(BUILD_DIR) mkdir $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) -static -L"$(GTEST_DIR)\lib" -o $@ tests/test_bit_vector.cpp src/utils/bit_vector.cpp src/utils/bit_writer.cpp -lgtest -lgtest_main -lpthread
+
+test_ef: $(BUILD_DIR)/test_elias_fano
+
+$(BUILD_DIR)/test_elias_fano: tests/test_elias_fano.cpp src/utils/elias_fano_coder.cpp src/utils/bit_vector.cpp src/utils/bit_writer.cpp
+	@if not exist $(BUILD_DIR) mkdir $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) -static -L"$(GTEST_DIR)\lib" -o $@ tests/test_elias_fano.cpp src/utils/elias_fano_coder.cpp src/utils/bit_vector.cpp src/utils/bit_writer.cpp -lgtest -lgtest_main -lpthread

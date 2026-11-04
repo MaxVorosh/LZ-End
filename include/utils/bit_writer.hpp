@@ -4,6 +4,8 @@
 
 class BitWriter {
 public:
+  BitWriter() : start_(nullptr), current_(nullptr) {}
+
   BitWriter(uint8_t* buffer)
     : start_(buffer),
       current_(buffer) {
@@ -16,6 +18,11 @@ public:
   void writeBits(int v, int count);
 
   int finish();
+
+  void update_ptr(uint8_t* new_ptr) {
+    current_ = new_ptr + (current_ - start_);
+    start_ = new_ptr;
+  }
 
 private:
   // Write accumulated bits to buffer.

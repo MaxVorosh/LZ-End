@@ -68,5 +68,8 @@ $(BUILD_DIR)/test_writer: tests/test_writer.cpp \
 	  src/utils/bit_reader.cpp src/utils/bit_writer.cpp src/base_coder/utils_shim.cpp \
 	  -lgtest -lgtest_main -lpthread
 
-clean:
-	if exist $(BUILD_DIR) rmdir /s /q $(BUILD_DIR)
+test_bit: $(BUILD_DIR)/test_bit_vector
+
+$(BUILD_DIR)/test_bit_vector: tests/test_bit_vector.cpp src/utils/bit_vector.cpp src/utils/bit_writer.cpp
+	@if not exist $(BUILD_DIR) mkdir $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) -static -L"$(GTEST_DIR)\lib" -o $@ tests/test_bit_vector.cpp src/utils/bit_vector.cpp src/utils/bit_writer.cpp -lgtest -lgtest_main -lpthread

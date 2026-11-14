@@ -10,7 +10,7 @@ TEST(BitVectorTest, RankSelect) {
     sbv.write(0, 1);
   };
   sbv.finish();
-  BitVector bv(sbv);
+  BitVector bv(std::move(sbv));
   EXPECT_EQ(bv.rank(4, 1), 2);
   EXPECT_EQ(bv.rank(4, 0), 2);
   // EXPECT_EQ(bv.select(2, 1), 2);

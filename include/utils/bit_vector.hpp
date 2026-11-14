@@ -98,7 +98,6 @@ public:
         : bv(std::move(other.bv)), data_(std::move(other.data_)),
           superblocks(std::move(other.superblocks)),
           blocks(std::move(other.blocks)),
-          table(std::move(other.table)),
           block_size_(other.block_size_),
           superblock_size_(other.superblock_size_) {}
 
@@ -108,7 +107,6 @@ public:
             data_ = std::move(other.data_);
             superblocks = std::move(other.superblocks);
             blocks = std::move(other.blocks);
-            table = std::move(other.table);
             block_size_ = other.block_size_;
             superblock_size_ = other.superblock_size_;
         }
@@ -125,7 +123,6 @@ private:
     SimpleBitVector data_;
     std::vector<uint8_t> superblocks;
     std::vector<uint8_t> blocks;
-    std::vector<uint8_t> table;
     int block_size_;
     int superblock_size_;
 };

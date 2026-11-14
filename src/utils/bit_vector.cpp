@@ -3,7 +3,7 @@
 #include <cmath>
 #include <iostream>
 
-BitVector::BitVector(SimpleBitVector&& data) : bv(data.getSize()), data_(std::move(data)) {
+BitVector::BitVector(SimpleBitVector&& data) : bv(data.getSize()), data_(data.getSize()) {
     int size = data_.getSize();
     
     // Number of elements
@@ -29,7 +29,7 @@ BitVector::BitVector(SimpleBitVector&& data) : bv(data.getSize()), data_(std::mo
             if (i + j > size) {
                 break;
             }
-            int bit = (data_.get_byte(byte_cnt) >> (7 - j)) % 2;
+            int bit = (data.get_byte(byte_cnt) >> (7 - j)) % 2;
             current_sb_count += bit;
             current_sb_pos += 1;
             if (current_sb_pos == superblock_size_) {
@@ -69,23 +69,15 @@ BitVector::BitVector(SimpleBitVector&& data) : bv(data.getSize()), data_(std::mo
         byte_cnt++;
     }
 
-    // Chunk table
-    uint64_t max_block_values = 1 << (block_size_);
-    table.resize(max_block_values);
-    for (uint64_t i = 0; i < max_block_values; ++i) {
-        int rank = __builtin_popcount(i);
-        bv.write(rank, block_value_size);
-        table.push_back(i);
-    }
-
     // Original data
     byte_cnt = 0;
     for (int i = 0; i < size; i += 8) {
         int chunk = (i + 8 > size) ? size - i : 8;
-        bv.write(data_.get_byte(byte_cnt), chunk);
+        data_.write(data.get_byte(byte_cnt), chunk);
         byte_cnt++;
     }
     bv.finish();
+    data_.finish();
 }
 
 int BitVector::rank(int i, int bit) {
@@ -97,7 +89,7 @@ int BitVector::rank(int i, int bit) {
     int double_byte = (data_.get_byte(byte) << 8) + data_.get_byte(byte + 1);
     int shift = 16 - in_byte_shift - block_size_;
     int chunk = (double_byte >> shift) & mask;
-    int ans = superblocks[sb] + blocks[mb] + table[chunk];
+    int ans = superblocks[sb] + blocks[mb] + __builtin_popcount(chunk);
     if (bit == 0) {
         return i - ans;
     }

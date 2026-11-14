@@ -1,27 +1,20 @@
 #pragma once
 
 #include "bit_vector.hpp"
-
-#include <vector>
+#include "phrase_types.hpp"
 
 class EliasFanoCoder {
 public:
-    void build();
+    void build(PhraseVector& phrases, int n);
 
-    void add_number(uint64_t number) {
-        numbers.push_back(number);
+    BitVector& getLengths() {
+        return bucket_lengths;
     }
 
-    BitVector& getPrefixes() {
-        return prefixes;
-    }
-
-    BitVector& getSuffixes() {
-        return suffixes;
+    BitVector& getPositions() {
+        return positions;
     }
 private:
-    std::vector<uint64_t> numbers;
-
-    BitVector prefixes;
-    BitVector suffixes;
+    BitVector bucket_lengths;
+    BitVector positions;
 };

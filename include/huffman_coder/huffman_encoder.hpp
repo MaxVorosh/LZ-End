@@ -21,7 +21,7 @@ class HuffmanEncoder {
     };
 
 public:
-    HuffmanEncoder(uint8_t* out) : writer_(out) {
+    HuffmanEncoder(uint8_t* out) : writer_(out), write_to_file_(out) {
         for (int i = 0; i < 512; ++i) {
             nodes_[i] = Node{0, i, 0, 0};
         }
@@ -34,6 +34,14 @@ public:
     void writeTable(int num_symbols);
     void buildCodes(int num_symbols);
     void limitLength(int num_symbols);
+
+    const uint64_t* getCodes() const {
+        return code_;
+    }
+
+    const uint8_t* getLengths() const {
+        return length_;
+    }
     
     int finish() {
         return writer_.finish();
@@ -43,8 +51,9 @@ private:
     const int kMaxHuffCodeLength = 11;
 
     uint8_t length_[256];
-    int code_[256];
+    uint64_t code_[256];
     Node nodes_[512];
+    bool write_to_file_;
 
     BitWriter writer_;
 };

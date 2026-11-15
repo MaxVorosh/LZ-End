@@ -48,7 +48,9 @@ void HuffmanEncoder::buildTable() {
 
   // limitLength(num_symbols);
 
-  writeTable(num_symbols);
+  if (write_to_file_) {
+    writeTable(num_symbols);
+  }
   buildCodes(num_symbols);
 }
 

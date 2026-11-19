@@ -4,7 +4,7 @@
 #include <iostream>
 
 BitVector::BitVector(SimpleBitVector&& data) : bv(data.getSize()), data_(data.getSize()) {
-    int size = data_.getSize();
+    int size = data.getSize();
     
     // Number of elements
     bv.write(size, 64); 
@@ -12,7 +12,7 @@ BitVector::BitVector(SimpleBitVector&& data) : bv(data.getSize()), data_(data.ge
         return;
     }
 
-    int log = log2(size);
+    int log = log2(size) + 1;
     block_size_ = log / 2;
     superblock_size_ = log * log / 2;
     int block_value_size = log2(block_size_);
@@ -56,7 +56,7 @@ BitVector::BitVector(SimpleBitVector&& data) : bv(data.getSize()), data_(data.ge
                 }
                 break;
             }
-            int bit = (data_.get_byte(byte_cnt) >> (7 - j)) % 2;
+            int bit = (data.get_byte(byte_cnt) >> (7 - j)) % 2;
             current_mb_count += bit;
             current_mb_pos += 1;
             if (current_mb_pos == block_size_) {
@@ -80,16 +80,18 @@ BitVector::BitVector(SimpleBitVector&& data) : bv(data.getSize()), data_(data.ge
     data_.finish();
 }
 
-int BitVector::rank(int i, int bit) {
+int BitVector::rank(int i, int bit) const {
     int byte = i / 8;
     int in_byte_shift = i % 8;
+    int in_block_shift = i % block_size_;
     int sb = i / superblock_size_;
     int mb = i / block_size_;
-    int mask = (1 << block_size_) - 1;
+    int mask = (1 << in_block_shift) - 1;
     int double_byte = (data_.get_byte(byte) << 8) + data_.get_byte(byte + 1);
-    int shift = 16 - in_byte_shift - block_size_;
+    int shift = 16 - in_byte_shift - block_size_ + 1;
     int chunk = (double_byte >> shift) & mask;
     int ans = superblocks[sb] + blocks[mb] + __builtin_popcount(chunk);
+    // std::cout << (int)superblocks[sb] << ' ' << (int)blocks[mb] << ' ' << __builtin_popcount(chunk) << ' ' << sb << ' ' << mb << ' ' << mask << ' ' << double_byte << ' ' << shift << ' ' << chunk << std::endl;
     if (bit == 0) {
         return i - ans;
     }

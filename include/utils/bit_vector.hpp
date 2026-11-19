@@ -114,7 +114,7 @@ public:
     }
 
     // Returns number of bits, equals to 'bit' on prefix i
-    int rank(int i, int bit);
+    int rank(int i, int bit) const;
     // TODO
     // int select(int i, int bit);
 
